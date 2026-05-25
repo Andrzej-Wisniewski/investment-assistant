@@ -1,0 +1,40 @@
+# Uruchomienie: docker compose up -d (z tego folderu)
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: investment-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: investment_user
+      POSTGRES_PASSWORD: dev_password_change_me
+      POSTGRES_DB: investment_assistant
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test:
+        ['CMD-SHELL', 'pg_isready -U investment_user -d investment_assistant']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8-alpine
+    container_name: investment-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:

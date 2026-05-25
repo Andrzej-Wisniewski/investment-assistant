@@ -1,0 +1,30 @@
+# === macOS ===
+.DS_Store
+
+# === Środowisko (sekrety!) ===
+.env
+.env.local
+.env.*.local
+*.secrets
+
+# === Node.js (frontend) ===
+node_modules/
+.next/
+out/
+*.log
+
+# === .NET (backend) ===
+bin/
+obj/
+*.user
+appsettings.Development.json
+appsettings.Local.json
+
+# === IDE ===
+.vs/
+.vscode/
+.idea/
+
+# === Logi i pliki tymczasowe ===
+*.log
+tmp/
