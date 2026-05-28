@@ -2,12 +2,10 @@ using InvestmentAssistant.Api.Models.Entities;
 using InvestmentAssistant.Api.Models.Requests;
 using InvestmentAssistant.Api.Models.Responses;
 using InvestmentAssistant.Api.Repositories;
-
 namespace InvestmentAssistant.Api.Services
 {
     /// <summary>
     /// Implementacja serwisu uwierzytelniania.
-    /// Zawiera logikę biznesową: sprawdzenie haseł, generowanie tokenów.
     /// </summary>
     public class AuthService : IAuthService
     {
@@ -80,12 +78,13 @@ namespace InvestmentAssistant.Api.Services
         }
 
         /// <summary>
-        /// Hashuje hasło za pomocą BCrypt.
+        /// Hashuje hasło za pomocą BCrypt
         /// </summary>
         private string HashPassword(string password)
         {
-            // TODO: Implementacja hashowania hasła
-            return password;
+            // BCrypt.HashPassword haszy i automatycznie dodaje sól
+            // Wynik to 60-znakowy hash, którym można bezpiecznie przechowywać
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
         /// <summary>
@@ -93,8 +92,15 @@ namespace InvestmentAssistant.Api.Services
         /// </summary>
         private bool VerifyPassword(string password, string hash)
         {
-            // TODO: Implementacja BCrypt
-            return password == hash;
+            try
+            {
+                return BCrypt.Net.BCrypt.Verify(password, hash);
+            }
+            catch 
+            {
+                // Jeśli hash jest uszkodzony lub nieprawidłowy, zwóć false zamiast rzucać wyjątek
+                return false;
+            }
         }
     }
 }
