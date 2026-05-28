@@ -1,49 +1,56 @@
+using Microsoft.EntityFrameworkCore;
 using InvestmentAssistant.Api.Models.Entities;
+using InvestmentAssistant.Api.Infrastructure.Database;
 
 namespace InvestmentAssistant.Api.Repositories;
 
 /// <summary>
-/// Implementacja dostępu do danych użytkowników.
+/// Implementacja dostępu do danych użytkowników (PostgreSQL + EF Core).
 /// </summary>
 public class UserRepository : IUserRepository
 {
-    public Task<User?> GetUserByIdAsync(Guid id)
+    private readonly AppDbContext _dbContext;
+
+    public UserRepository(AppDbContext dbContext)
     {
-        throw new NotImplementedException();
-    }
-    
-    public Task<User?> GetUserByEmailAsync(string email)
-    {
-        throw new NotImplementedException();
+        _dbContext = dbContext;
     }
 
-    public Task<User> CreateUserAsync(User user)
+    public async Task<User?> GetByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public Task<User> UpdateUserAsync(User user)
+    public async Task<User?> GetByEmailAsync(string email)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(email))
+            return null;
+
+        return await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
 
-    public Task<User?> GetByIdAsync(Guid id)
+    public async Task<User> CreateAsync(User user)
     {
-        throw new NotImplementedException();
+        if (user == null)
+            throw new ArgumentNullException(nameof(user));
+
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
+
+        return user;
     }
 
-    public Task<User?> GetByEmailAsync(string email)
+    public async Task<User> UpdateAsync(User user)
     {
-        throw new NotImplementedException();
-    }
+        if (user == null)
+            throw new ArgumentNullException(nameof(user));
 
-    public Task<User> CreateAsync(User user)
-    {
-        throw new NotImplementedException();
-    }
+        user.UpdatedAt = DateTime.UtcNow;
+        _dbContext.Users.Update(user);
+        await _dbContext.SaveChangesAsync();
 
-    public Task<User> UpdateAsync(User user)
-    {
-        throw new NotImplementedException();
+        return user;
     }
 }
