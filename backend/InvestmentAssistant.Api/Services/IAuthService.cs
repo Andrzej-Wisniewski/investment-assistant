@@ -16,5 +16,5 @@ public interface IAuthService
     /// <summary>
     /// Rejestruje nowego użytkownika na podstawie podanych danych.
     /// </summary>
-    Task<UserResponse> RegisterAsync(LoginRequest request);
+    Task<UserResponse> RegisterAsync(RegisterRequest request);
 }
