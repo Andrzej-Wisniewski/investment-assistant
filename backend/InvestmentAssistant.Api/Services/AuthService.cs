@@ -2,40 +2,55 @@ using InvestmentAssistant.Api.Models.Entities;
 using InvestmentAssistant.Api.Models.Requests;
 using InvestmentAssistant.Api.Models.Responses;
 using InvestmentAssistant.Api.Repositories;
+using InvestmentAssistant.Api.Infrastructure.Cache;
+using BCrypt.Net;
 namespace InvestmentAssistant.Api.Services
 {
-    /// <summary>
-    /// Implementacja serwisu uwierzytelniania.
-    /// </summary>
     public class AuthService : IAuthService
     {
         private readonly IUserRepository _userRepository;
+        private readonly ICacheService _cacheService;
+        private readonly IJwtService _jwtService;
 
-        // Wstrzykiwanie zależności przez konstruktor
-        // IUserRepository zostaje wstrzyknięty przez framework
-        public AuthService(IUserRepository userRepository)
+        public AuthService(IUserRepository userRepository, ICacheService cacheService, IJwtService jwtService)
         {
             _userRepository = userRepository;
+            _cacheService = cacheService;
+            _jwtService = jwtService;
         }
 
         public async Task<LoginResponse> LoginAsync(LoginRequest request)
         {
-            // Walidacja danych wejściowych
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
                 throw new UnauthorizedAccessException("Email i hasło są wymagane.");
             }
 
-            // Pobierz użytkownika z bazy danych na podstawie adresu email
-            var user = await _userRepository.GetByEmailAsync(request.Email);
+            var cacheKey = $"user:{request.Email}";
+            var cachedUser = await _cacheService.GetAsync<User>(cacheKey);
 
-            if (user == null || !VerifyPassword(request.Password, user.PasswordHash))
+            User? user;
+
+            if(cachedUser is not null)
+            {
+                user = cachedUser;
+            }
+            else
+            {
+                user = await _userRepository.GetByEmailAsync(request.Email);
+
+                if (user is not null)
+                {
+                    await _cacheService.SetAsync(cacheKey, user, TimeSpan.FromMinutes(5));
+                }
+            }
+
+            if (user is null || !VerifyPassword(request.Password, user.PasswordHash))
             {
                 throw new UnauthorizedAccessException("Niepoprawny email lub hasło.");
             }
 
-            // Generowanie JWT
-            var token = "placeholder-token";
+            var token = _jwtService.GenerateToken(user);
 
             return new LoginResponse(
                 AccessToken: token,
@@ -44,21 +59,17 @@ namespace InvestmentAssistant.Api.Services
 
         public async Task<UserResponse> RegisterAsync(RegisterRequest request)
         {
-            // Walidacja danych wejściowych
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password) || string.IsNullOrWhiteSpace(request.FullName))
             {
                 throw new ArgumentException("Email, hasło i imię są wymagane.");
             }
 
-            // Sprawdzenie, czy użytkownik już istnieje
             var existingUser = await _userRepository.GetByEmailAsync(request.Email);
             if (existingUser is not null)
             {
                 throw new InvalidOperationException("Użytkownik z tym adresem email już istnieje.");
             }
 
-
-            // Stwórz nowego użytkownika
             var user = new User
             {
                 Email = request.Email,
@@ -68,7 +79,7 @@ namespace InvestmentAssistant.Api.Services
             };
 
             var createdUser = await _userRepository.CreateAsync(user);
-
+            await _cacheService.RemoveAsync($"user:{request.Email}");
 
             return new UserResponse(
                 Id: createdUser.Id,
@@ -79,19 +90,11 @@ namespace InvestmentAssistant.Api.Services
             );
         }
 
-        /// <summary>
-        /// Hashuje hasło za pomocą BCrypt
-        /// </summary>
         private string HashPassword(string password)
         {
-            // BCrypt.HashPassword haszy i automatycznie dodaje sól
-            // Wynik to 60-znakowy hash, którym można bezpiecznie przechowywać
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
-        /// <summary>
-        /// Sprawdza, czy podane hasło jest poprawne w porównaniu do przechowywanego hash'a.    
-        /// </summary>
         private bool VerifyPassword(string password, string hash)
         {
             try
@@ -100,7 +103,6 @@ namespace InvestmentAssistant.Api.Services
             }
             catch 
             {
-                // Jeśli hash jest uszkodzony lub nieprawidłowy, zwóć false zamiast rzucać wyjątek
                 return false;
             }
         }
