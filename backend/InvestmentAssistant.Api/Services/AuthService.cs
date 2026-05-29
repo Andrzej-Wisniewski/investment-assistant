@@ -42,12 +42,12 @@ namespace InvestmentAssistant.Api.Services
                 ExpiresIn: 3600);
         }
 
-        public async Task<UserResponse> RegisterAsync(LoginRequest request)
+        public async Task<UserResponse> RegisterAsync(RegisterRequest request)
         {
             // Walidacja danych wejściowych
-            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password) || string.IsNullOrWhiteSpace(request.FullName))
             {
-                throw new ArgumentException("Email i hasło są wymagane.");
+                throw new ArgumentException("Email, hasło i imię są wymagane.");
             }
 
             // Sprawdzenie, czy użytkownik już istnieje
@@ -58,11 +58,12 @@ namespace InvestmentAssistant.Api.Services
             }
 
 
-            // Tworzenie nowego użytkownika
+            // Stwórz nowego użytkownika
             var user = new User
             {
                 Email = request.Email,
-                FullName = request.Email.Split('@')[0],
+                FullName = request.FullName,
+                PhoneNumber = request.PhoneNumber,
                 PasswordHash = HashPassword(request.Password),
             };
 
@@ -73,6 +74,7 @@ namespace InvestmentAssistant.Api.Services
                 Id: createdUser.Id,
                 Email: createdUser.Email,
                 FullName: createdUser.FullName,
+                PhoneNumber: createdUser.PhoneNumber,
                 CreatedAt: createdUser.CreatedAt
             );
         }

@@ -25,6 +25,10 @@ namespace InvestmentAssistant.Api.Models.Entities
         /// </summary>
         public required string PasswordHash { get; set; }
 
+        /// <summary>
+        /// Numer telefonu użytkownika 
+        /// </summary>
+        public string? PhoneNumber { get; set; }
 
         /// <summary>
         /// Czy konto jest aktywne.

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using InvestmentAssistant.Api.Services;
 using InvestmentAssistant.Api.Models.Responses;
+using InvestmentAssistant.Api.Models.Requests;
 
 namespace InvestmentAssistant.Api.Controllers;
 
@@ -31,7 +32,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] LoginRequest request)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         try
         {

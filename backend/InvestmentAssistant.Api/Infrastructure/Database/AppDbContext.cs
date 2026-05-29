@@ -42,6 +42,9 @@ public class AppDbContext : DbContext
             // PasswordHash jest obowiązkowy
             entity.Property(u => u.PasswordHash).IsRequired().HasMaxLength(512);
 
+            // Numer telefonu jest opcjonalny
+            entity.Property(u => u.PhoneNumber).HasMaxLength(20);
+
             // isActive ma wartość domyślną (true)
             entity.Property(u => u.IsActive).HasDefaultValue(true);
 
