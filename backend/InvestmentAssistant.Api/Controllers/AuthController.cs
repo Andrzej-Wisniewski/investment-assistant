@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Mvc;
 using InvestmentAssistant.Api.Services;
 using InvestmentAssistant.Api.Models.Responses;
 using InvestmentAssistant.Api.Models.Requests;
+using InvestmentAssistant.Api.Repositories;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace InvestmentAssistant.Api.Controllers;
 
@@ -10,11 +13,12 @@ namespace InvestmentAssistant.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IUserRepository _userRepository;
 
-    // Wstrzykuwanie zależności usługi uwierzytelniania
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IUserRepository userRepository)
     {
         _authService = authService;
+        _userRepository = userRepository;
     }
 
     [HttpPost("login")]
@@ -49,4 +53,30 @@ public class AuthController : ControllerBase
         }
     }
 
+
+[Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userId == null || !Guid.TryParse(userId.Value, out var userIdGuid))
+        {
+            return Unauthorized(new { message = "Token jest nieważny." });
+        }
+
+        var user = await _userRepository.GetByIdAsync(userIdGuid);
+        if (user == null)
+        {
+            return NotFound(new { message = "Użytkownik nie został znaleziony." });
+        }
+
+        return Ok(new UserResponse(
+            Id: user.Id,
+            Email: user.Email,
+            FullName: user.FullName,
+            PhoneNumber: user.PhoneNumber,
+            CreatedAt: user.CreatedAt
+        ));
+
+    }
 }
