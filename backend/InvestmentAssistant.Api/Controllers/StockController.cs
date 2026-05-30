@@ -23,7 +23,7 @@ public class StockController : ControllerBase
     public async Task<IActionResult> GetStock(string symbol)
     {
         var stock = await _stockService.GetStockDataAsync(symbol);
-        
+
         if (stock is null)
         {
             return NotFound(new { message = $"Nie mogę pobrać danych dla {symbol}" });

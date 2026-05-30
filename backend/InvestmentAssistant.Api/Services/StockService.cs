@@ -6,16 +6,16 @@ namespace InvestmentAssistant.Api.Services;
 
 public class StockService : IStockService
 {
-    private readonly IAlpacaService _alpacaService;
+    private readonly IAlphaVantageService _alphaVantageService;
     private readonly IStockRepository _stockRepository;
 
     private readonly ICacheService _cacheService;
 
     private readonly ILogger<StockService> _logger;
 
-    public StockService(IAlpacaService alpacaService, IStockRepository stockRepository, ICacheService cacheService, ILogger<StockService> logger)
+    public StockService(IAlphaVantageService alphaVantageService, IStockRepository stockRepository, ICacheService cacheService, ILogger<StockService> logger)
     {
-        _alpacaService = alpacaService;
+        _alphaVantageService = alphaVantageService;
         _stockRepository = stockRepository;
         _cacheService = cacheService;
         _logger = logger;
@@ -36,12 +36,12 @@ public class StockService : IStockService
             return cachedData;
         }
 
-        _logger.LogInformation($"Nie znaleziono danych w pamięci podręcznej dla symbolu {symbol}. Pobieranie z Alpaca...", symbol);
-        var stockData = await _alpacaService.GetLatestStockDataAsync(symbol);
+        _logger.LogInformation($"Nie znaleziono danych w pamięci podręcznej dla symbolu {symbol}. Pobieranie z Alpha Vantage...", symbol);
+        var stockData = await _alphaVantageService.GetLatestStockDataAsync(symbol);
 
         if (stockData is null)
         {
-            _logger.LogWarning("Nie można pobrać {symbol} z Alpaca", symbol);
+            _logger.LogWarning("Nie można pobrać {symbol} z Alpha Vantage", symbol);
             return null;
         }
 

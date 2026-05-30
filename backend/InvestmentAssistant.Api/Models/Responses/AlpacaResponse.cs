@@ -3,9 +3,9 @@ using System.Text.Json.Serialization;
 namespace InvestmentAssistant.Api.Models.Responses;
 
 /// <summary>
-/// Reprezentacja odpowiedzi z Alpaca API dla danych cenowych
+/// Reprezentacja odpowiedzi z Alpha Vantage API dla danych cenowych
 /// </summary>
-public class AlpacaResponse
+public class  AlphaVantageResponse
 {
     [JsonPropertyName("t")]
     public long Timestamp { get; set; }
@@ -33,12 +33,12 @@ public class AlpacaResponse
 }
 
 /// <summary>
-/// Cała odpowiedź z Alpaca API.
+/// Cała odpowiedź z Alpha Vantage API.
 /// </summary>
-public class AlpacaApiResponse
+public class AlphaVantageApiResponse
 {
     [JsonPropertyName("bars")]
-    public Dictionary<string, List<AlpacaResponse>> Bars { get; set; } = new();
+    public Dictionary<string, List<AlphaVantageResponse>> Bars { get; set; } = new();
 
     [JsonPropertyName("status")]
     public string Status { get; set; } = string.Empty;

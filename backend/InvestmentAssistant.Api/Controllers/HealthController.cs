@@ -1,15 +1,31 @@
 using Microsoft.AspNetCore.Mvc;
+using InvestmentAssistant.Api.Services;
 
-namespace InvestmentAssistant.Api.Controllers
+namespace InvestmentAssistant.Api.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class HealthController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class HealthController : ControllerBase
+    private readonly IStockDataCollectorService _collectorService;
+
+    public HealthController(IStockDataCollectorService collectorService)
     {
-        [HttpGet]
-        public IActionResult Get()
+        _collectorService = collectorService;
+    }
+
+    [HttpGet]
+    public IActionResult Get()
+    {
+        return Ok(new
         {
-            return Ok(new { status = "Healthy", timestamp = DateTime.UtcNow, service = "InvestmentAssistant.Api" });
-        }
+            status = "healthy",
+            timestamp = DateTime.UtcNow,
+            service = "InvestmentAssistant.Api",
+            backgroundServices = new
+            {
+                lastStockDataUpdate = _collectorService.LastSuccessfulUpdate
+            }
+        });
     }
 }

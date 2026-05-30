@@ -3,9 +3,9 @@ using InvestmentAssistant.Api.Models.Entities;
 namespace InvestmentAssistant.Api.Services;
 
 /// <summary>
-/// Abstrakcja komunikacji z Alpaca Markets API
+/// Abstrakcja komunikacji z Alpha Vantage API
 /// </summary>
-public interface IAlpacaService
+public interface IAlphaVantageService
 {
     /// <summary>
     /// Pobiera najnowsze dane cenowe dla akcji
