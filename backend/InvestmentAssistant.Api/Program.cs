@@ -57,6 +57,9 @@ builder.Services.AddScoped<IAlphaVantageService, AlphaVantageService>();
 builder.Services.AddScoped<IStockRepository, StockRepository>();
 builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IStockDataCollectorService, StockDataCollectorService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+builder.Services.AddScoped<IStockHistoryRepository, StockHistoryRepository>();
+builder.Services.AddScoped<TechnicalIndicatorService>();
 
 // === BackgroundService ===
 builder.Services.AddHostedService<StockDataCollectorBackgroundService>();

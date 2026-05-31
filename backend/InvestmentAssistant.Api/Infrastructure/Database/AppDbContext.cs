@@ -46,34 +46,44 @@ public class AppDbContext : DbContext
             entity.ToTable("users");
         });
 
-         modelBuilder.Entity<Stock>(entity =>
-        {
-            entity.HasKey(s => s.Id);
-            entity.HasIndex(s => s.Symbol).IsUnique();
-            
-            entity.Property(s => s.Symbol)
-                .IsRequired()
-                .HasMaxLength(10);
-            
-            entity.Property(s => s.CurrentPrice)
-                .HasPrecision(18, 2);
-            
-            entity.Property(s => s.OpenPrice)
-                .HasPrecision(18, 2);
-            
-            entity.Property(s => s.HighPrice)
-                .HasPrecision(18, 2);
-            
-            entity.Property(s => s.LowPrice)
-                .HasPrecision(18, 2);
-            
-            entity.Property(s => s.PreviousClosePrice)
-                .HasPrecision(18, 2);
-            
-            entity.Property(s => s.LastUpdatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
-            
-            entity.ToTable("stocks");
-        });
+        modelBuilder.Entity<Stock>(entity =>
+       {
+           entity.HasKey(s => s.Id);
+           entity.HasIndex(s => s.Symbol).IsUnique();
+
+           entity.Property(s => s.Symbol)
+               .IsRequired()
+               .HasMaxLength(10);
+
+           entity.Property(s => s.CurrentPrice)
+               .HasPrecision(18, 2);
+
+           entity.Property(s => s.OpenPrice)
+               .HasPrecision(18, 2);
+
+           entity.Property(s => s.HighPrice)
+               .HasPrecision(18, 2);
+
+           entity.Property(s => s.LowPrice)
+               .HasPrecision(18, 2);
+
+           entity.Property(s => s.PreviousClosePrice)
+               .HasPrecision(18, 2);
+
+           entity.Property(s => s.LastUpdatedAt)
+               .HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
+
+           entity.ToTable("stocks");
+       });
+        
+        modelBuilder.Entity<Stock>()
+            .HasMany(s => s.History)
+            .WithOne(h => h.Stock)
+            .HasForeignKey(h => h.StockId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<StockHistory>()
+            .HasIndex(h => new { h.StockId, h.Date })
+            .IsUnique();
     }
 }

@@ -96,6 +96,53 @@ public class AlphaVantageService : IAlphaVantageService
             return null;
         }
     }
+
+    public async Task<List<Stock>> GetDailyTimeSeriesAsync(string symbol)
+{
+    try
+    {
+        var url = $"https://www.alphavantage.co/query?" +
+                  $"function=TIME_SERIES_DAILY&symbol={symbol}&outputsize=full&apikey={_apiKey}";
+
+        var response = await _httpClient.GetAsync(url);
+
+        if (!response.IsSuccessStatusCode)
+            return new List<Stock>();
+
+        var content = await response.Content.ReadAsStringAsync();
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var jsonData = JsonSerializer.Deserialize<JsonElement>(content, options);
+
+        var stocks = new List<Stock>();
+
+        if (jsonData.TryGetProperty("Time Series (Daily)", out var timeSeries))
+        {
+            foreach (var day in timeSeries.EnumerateObject())
+            {
+                var dateStr = day.Name;
+                var prices = day.Value;
+
+                if (DateTime.TryParse(dateStr, out var date) &&
+                    prices.TryGetProperty("4. close", out var closePrice))
+                {
+                    stocks.Add(new Stock
+                    {
+                        Symbol = symbol.ToUpper(),
+                        CurrentPrice = decimal.Parse(closePrice.GetString() ?? "0"),
+                        LastUpdatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+        }
+
+        return stocks.OrderBy(s => s.LastUpdatedAt).ToList();
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Błąd przy pobieraniu historii: {ex.Message}");
+        return new List<Stock>();
+    }
+}
 }
 
 public class AlphaVantageQuote
