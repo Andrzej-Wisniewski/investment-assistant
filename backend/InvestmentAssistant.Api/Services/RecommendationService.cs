@@ -30,9 +30,8 @@ public class RecommendationService : IRecommendationService
             return null;
         }
 
-        // Obliczamy rzeczywiste wskaźniki
-        double rsi = await _indicatorService.CalculateRsiAsync(symbol);
-        double sma20 = await _indicatorService.CalculateSma20Async(symbol);
+        double rsi = await SafeCalculateRsiAsync(symbol);
+        double sma20 = await SafeCalculateSma20Async(symbol);
 
         var decision = _analyzer.Analyze((double)stock.CurrentPrice, rsi, sma20);
 
@@ -51,6 +50,33 @@ public class RecommendationService : IRecommendationService
             Reasoning = GenerateReasoning(decision, rsi, (double)stock.CurrentPrice, sma20),
             AnalyzedAt = DateTime.UtcNow
         };
+    }
+
+    private async Task<double> SafeCalculateRsiAsync(string symbol)
+    {
+        try
+        {
+            return await _indicatorService.CalculateRsiAsync(symbol);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Nie mogę obliczyć RSI dla {symbol}: {ex.Message}. Zwracam neutralne 50.0");
+            return 50.0;
+        }
+    }
+
+    private async Task<double> SafeCalculateSma20Async(string symbol)
+    {
+        try
+        {
+            return await _indicatorService.CalculateSma20Async(symbol);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Nie mogę obliczyć SMA20 dla {symbol}: {ex.Message}. Zwracam neutralne wartości");
+            var stock = await _stockService.GetStockDataAsync(symbol);
+            return stock != null ? (double)stock.CurrentPrice : 0.0; 
+        }
     }
 
     private string GenerateReasoning(

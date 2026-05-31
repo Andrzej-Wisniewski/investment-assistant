@@ -32,29 +32,22 @@ namespace InvestmentAssistant.Api.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("CurrentPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("HighPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<DateTime>("LastUpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("LowPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("OpenPrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("PreviousClosePrice")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Symbol")
                         .IsRequired()
@@ -66,7 +59,45 @@ namespace InvestmentAssistant.Api.Migrations
                     b.HasIndex("Symbol")
                         .IsUnique();
 
-                    b.ToTable("stocks", (string)null);
+                    b.ToTable("Stocks");
+                });
+
+            modelBuilder.Entity("InvestmentAssistant.Api.Models.Entities.StockHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("ClosePrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("HighPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("LowPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("OpenPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("StockId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Volume")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StockId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("StockHistory");
                 });
 
             modelBuilder.Entity("InvestmentAssistant.Api.Models.Entities.User", b =>
@@ -76,9 +107,7 @@ namespace InvestmentAssistant.Api.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -91,18 +120,14 @@ namespace InvestmentAssistant.Api.Migrations
                         .HasColumnType("character varying(255)");
 
                     b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(true);
+                        .HasColumnType("boolean");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("character varying(512)");
+                        .HasColumnType("text");
 
                     b.Property<string>("PhoneNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -112,7 +137,23 @@ namespace InvestmentAssistant.Api.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("users", (string)null);
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("InvestmentAssistant.Api.Models.Entities.StockHistory", b =>
+                {
+                    b.HasOne("InvestmentAssistant.Api.Models.Entities.Stock", "Stock")
+                        .WithMany("History")
+                        .HasForeignKey("StockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Stock");
+                });
+
+            modelBuilder.Entity("InvestmentAssistant.Api.Models.Entities.Stock", b =>
+                {
+                    b.Navigation("History");
                 });
 #pragma warning restore 612, 618
         }

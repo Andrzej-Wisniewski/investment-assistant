@@ -8,82 +8,54 @@ namespace InvestmentAssistant.Api.Infrastructure.Database;
 /// </summary>
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    /// <summary>
-    /// Tabela Users - reprezentuje użytkowników aplikacji
-    /// </summary>
     public DbSet<User> Users { get; set; }
-
-    /// <summary>
-    ///  Tabela Akcji - reprezentuje dane o akcjach giełdowych
-    /// </summary>
     public DbSet<Stock> Stocks { get; set; }
+    public DbSet<StockHistory> StockHistory { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.HasKey(u => u.Id);
 
-            entity.HasIndex(u => u.Email).IsUnique();
+        // === USERS ===
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
 
-            entity.Property(u => u.Email).IsRequired().HasMaxLength(255);
+        modelBuilder.Entity<User>()
+            .Property(u => u.Email)
+            .HasMaxLength(255)
+            .IsRequired();
 
-            entity.Property(u => u.FullName).IsRequired().HasMaxLength(255);
+        modelBuilder.Entity<User>()
+            .Property(u => u.FullName)
+            .HasMaxLength(255)
+            .IsRequired();
 
-            entity.Property(u => u.PasswordHash).IsRequired().HasMaxLength(512);
-
-            entity.Property(u => u.PhoneNumber).HasMaxLength(20).IsRequired(false);
-
-            entity.Property(u => u.IsActive).HasDefaultValue(true);
-
-            entity.Property(u => u.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
-
-            entity.ToTable("users");
-        });
-
-        modelBuilder.Entity<Stock>(entity =>
-       {
-           entity.HasKey(s => s.Id);
-           entity.HasIndex(s => s.Symbol).IsUnique();
-
-           entity.Property(s => s.Symbol)
-               .IsRequired()
-               .HasMaxLength(10);
-
-           entity.Property(s => s.CurrentPrice)
-               .HasPrecision(18, 2);
-
-           entity.Property(s => s.OpenPrice)
-               .HasPrecision(18, 2);
-
-           entity.Property(s => s.HighPrice)
-               .HasPrecision(18, 2);
-
-           entity.Property(s => s.LowPrice)
-               .HasPrecision(18, 2);
-
-           entity.Property(s => s.PreviousClosePrice)
-               .HasPrecision(18, 2);
-
-           entity.Property(s => s.LastUpdatedAt)
-               .HasDefaultValueSql("CURRENT_TIMESTAMP AT TIME ZONE 'UTC'");
-
-           entity.ToTable("stocks");
-       });
-        
+        // === STOCKS ===
         modelBuilder.Entity<Stock>()
-            .HasMany(s => s.History)
-            .WithOne(h => h.Stock)
+            .HasIndex(s => s.Symbol)
+            .IsUnique();
+
+        modelBuilder.Entity<Stock>()
+            .Property(s => s.Symbol)
+            .HasMaxLength(10)
+            .IsRequired();
+
+        // === STOCK HISTORY ===
+        modelBuilder.Entity<StockHistory>()
+            .HasOne(h => h.Stock)
+            .WithMany(s => s.History)
             .HasForeignKey(h => h.StockId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<StockHistory>()
             .HasIndex(h => new { h.StockId, h.Date })
             .IsUnique();
+
+        modelBuilder.Entity<StockHistory>()
+            .Property(h => h.Date)
+            .HasColumnType("date");
     }
 }
